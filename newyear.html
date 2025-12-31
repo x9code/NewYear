@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy New Year! 🎆</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            font-family: 'Arial Black', sans-serif;
+        }
+        
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .message-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            text-align: center;
+        }
+        
+        .message {
+            font-size: 120px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 80px rgba(255, 255, 255, 0.5);
+            animation: gradient 3s ease infinite, bounce 1s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px #fff);
+        }
+        
+        .year {
+            font-size: 150px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 2s ease infinite, spin 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 40px #ffd700);
+            margin-top: 20px;
+        }
+        
+        .emoji {
+            font-size: 80px;
+            display: inline-block;
+            animation: rotate 2s linear infinite;
+        }
+        
+        .signature {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            color: #fff;
+            font-size: 24px;
+            font-family: 'Brush Script MT', cursive, Arial;
+            text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
+            z-index: 100;
+            font-style: italic;
+            animation: glow 2s ease-in-out infinite;
+        }
+        
+        .music-button {
+            position: fixed;
+            bottom: 20px;
+            left: 30px;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+        
+        .music-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .music-button:active {
+            transform: scale(0.95);
+        }
+        
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff; }
+            50% { text-shadow: 0 0 20px #ff00ff, 0 0 30px #00ffff, 0 0 40px #ff00ff; }
+        }
+        
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.05); }
+        }
+        
+        @keyframes spin {
+            0%, 100% { transform: rotate(-3deg) scale(1); }
+            50% { transform: rotate(3deg) scale(1.1); }
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+        
+        @media (max-width: 768px) {
+            .message { font-size: 50px; }
+            .year { font-size: 70px; }
+            .emoji { font-size: 40px; }
+            .signature { font-size: 18px; }
+            .music-button { font-size: 16px; padding: 12px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworks"></canvas>
+    <div class="stars" id="stars"></div>
+    <div class="message-container">
+        <div class="message">
+            <span class="emoji">🎉</span>
+            HAPPY NEW YEAR
+            <span class="emoji">🎊</span>
+        </div>
+        <div class="year">2026! 🎆</div>
+    </div>
+    
+    <div class="signature">Best wishes from Deepak ❤️</div>
+    
+    <button class="music-button" id="musicBtn">🎵 Play Music</button>
+    
+    <!-- 🎵 MUSIC SETUP INSTRUCTIONS:
+         1. Save this HTML file (e.g., newyear.html)
+         2. Put your music file in the SAME FOLDER as this HTML file
+         3. File should be named: music.m4a
+    -->
+    <audio id="bgMusic" loop>
+        <source src="music.m4a" type="audio/mp4">
+    </audio>
+    
+    <script>
+        // 🎵 MUSIC CONTROL
+        const music = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('musicBtn');
+        music.volume = 0.5; // Set volume (0.0 to 1.0)
+        
+        let isPlaying = false;
+        
+        // Toggle music on button click
+        musicBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                music.pause();
+                musicBtn.textContent = '🎵 Play Music';
+                isPlaying = false;
+            } else {
+                music.play().then(() => {
+                    musicBtn.textContent = '⏸️ Pause Music';
+                    isPlaying = true;
+                }).catch(e => {
+                    console.log('Music play failed:', e);
+                    alert('Could not play music. Make sure the file "music.m4a" is in the same folder as this HTML file!');
+                });
+            }
+        });
+        
+        // Try to autoplay (will likely be blocked, but worth trying)
+        music.play().then(() => {
+            musicBtn.textContent = '⏸️ Pause Music';
+            isPlaying = true;
+        }).catch(e => {
+            // Autoplay blocked, button will allow manual play
+        });
+        
+        // Create twinkling stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.width = Math.random() * 3 + 1 + 'px';
+            star.style.height = star.style.width;
+            star.style.animationDelay = Math.random() * 2 + 's';
+            starsContainer.appendChild(star);
+        }
+        
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Sound effects removed - only your music will play
+        
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 8 + 4;
+                this.velocity = {
+                    x: Math.cos(angle) * speed,
+                    y: Math.sin(angle) * speed
+                };
+                this.alpha = 1;
+                this.decay = Math.random() * 0.01 + 0.01;
+                this.size = Math.random() * 3 + 2;
+                this.trail = [];
+            }
+            
+            update() {
+                this.velocity.y += 0.15;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= this.decay;
+                
+                this.trail.push({ x: this.x, y: this.y, alpha: this.alpha });
+                if (this.trail.length > 5) this.trail.shift();
+            }
+            
+            draw() {
+                // Draw trail
+                this.trail.forEach((point, i) => {
+                    ctx.save();
+                    ctx.globalAlpha = point.alpha * (i / this.trail.length) * 0.3;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, this.size * 0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+                
+                // Draw particle with glow
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+        
+        class Rocket {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height;
+                this.targetY = Math.random() * canvas.height * 0.4 + 100;
+                this.speed = Math.random() * 3 + 5;
+                this.color = '#ffffff';
+                this.trail = [];
+            }
+            
+            update() {
+                this.y -= this.speed;
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > 20) this.trail.shift();
+                return this.y <= this.targetY;
+            }
+            
+            draw() {
+                this.trail.forEach((point, i) => {
+                    ctx.save();
+                    ctx.globalAlpha = i / this.trail.length * 0.5;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+            }
+        }
+        
+        let particles = [];
+        let rockets = [];
+        
+        function createFirework(x, y) {
+            const colorSets = [
+                ['#ff0000', '#ff4444', '#ff8888'],
+                ['#00ff00', '#44ff44', '#88ff88'],
+                ['#0000ff', '#4444ff', '#8888ff'],
+                ['#ffff00', '#ffff44', '#ffff88'],
+                ['#ff00ff', '#ff44ff', '#ff88ff'],
+                ['#00ffff', '#44ffff', '#88ffff'],
+                ['#ff6600', '#ff9944', '#ffcc88'],
+                ['#ffffff', '#dddddd', '#aaaaaa']
+            ];
+            const colors = colorSets[Math.floor(Math.random() * colorSets.length)];
+            const particleCount = Math.random() * 50 + 100;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(x, y, color));
+            }
+        }
+        
+        function animate() {
+            ctx.fillStyle = 'rgba(9, 10, 15, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw rockets
+            rockets = rockets.filter(r => {
+                const exploded = r.update();
+                r.draw();
+                if (exploded) {
+                    createFirework(r.x, r.y);
+                }
+                return !exploded;
+            });
+            
+            // Update and draw particles
+            particles = particles.filter(p => p.alpha > 0);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        function launchRocket() {
+            rockets.push(new Rocket());
+            
+            setTimeout(launchRocket, Math.random() * 600 + 300);
+        }
+        
+        canvas.addEventListener('click', (e) => {
+            createFirework(e.clientX, e.clientY);
+        });
+        
+        animate();
+        setTimeout(launchRocket, 500);
+        
+        // Launch extra fireworks for the first few seconds
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                const rocket = new Rocket();
+                rockets.push(rocket);
+            }, i * 400);
+        }
+    </script>
+</body>
+</html>
